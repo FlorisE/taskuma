@@ -3,27 +3,28 @@ import './App.css';
 
 window.socket = new WebSocket("ws://localhost:3001");
 
-let test = " ";
-
 class TaskItem extends Component {
   constructor(props) {
-      super(props);
-      this.state = {
-          value: props.value
-      };
+    super(props);
+    this.state = { value: props.value };
+    this.removeTask = this.props.removeTask;
+    this.done = this.done.bind(this);
+
+  }
+
+  done() {
+    this.removeTask(this.props.value);
   }
 
   render() { 
-    return <li>{this.state.value}</li>; 
+    return <li>{this.state.value} <a href="#done" onClick={this.done}>done!</a></li>; 
   }
 }
 
 class AddField extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      value: ''
-    };
+    this.state = { value: '' };
     this.addTask = this.props.addTask;
     this.handleTaskChange = this.handleTaskChange.bind(this);
     this.handleAddTask = this.handleAddTask.bind(this);
@@ -35,11 +36,9 @@ class AddField extends Component {
   }
 
   handleTaskChange(event) {
-    this.setState(
-      {
-          value: event.target.value
-      }
-    );
+    this.setState({
+      value: event.target.value
+    });
   }
 
   render() { 
@@ -48,7 +47,7 @@ class AddField extends Component {
         <input type="text" name="task" value={this.state.value} onChange={this.handleTaskChange} />
         <button onClick={this.handleAddTask}>Add task</button>
       </div>
-      );
+    );
   }
 
 }
@@ -58,9 +57,10 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-        tasks: []
+      tasks: []
     };
-    this.addTask = this.addTask.bind(this)
+    this.addTask = this.addTask.bind(this);
+    this.removeTask = this.removeTask.bind(this);
   }
 
   componentDidMount() {
@@ -72,21 +72,36 @@ class App extends Component {
   }
 
   submitTask(task) {
-      window.socket.send(task);
+    window.socket.send(task);
   }
 
   addTask(task) {
     if (task === '') return;
     this.setState(
-        (prevState, props) => ({
-            tasks: prevState.tasks.concat([task])
-        })
+      (prevState, props) => ({
+        tasks: prevState.tasks.concat([task])
+      })
+    );
+  }
+
+  removeTask(task) {
+    let findAndRemove = (item, list) => {
+      let index = list.indexOf(item);
+      if (index !== -1) {
+        list.splice(index, 1);
+      }
+      return list;
+    };
+    this.setState(
+      (prevState, props) => ({
+        tasks: findAndRemove(task, prevState.tasks)
+      })
     );
   }
 
   render() {
     const taskItems = this.state.tasks.map(
-      (taskItem) => <TaskItem key={taskItem} value={taskItem} />
+      (taskItem) => <TaskItem key={taskItem} value={taskItem} removeTask={this.removeTask} />
     );
     return (
       <div className="App">
