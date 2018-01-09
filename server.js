@@ -14,7 +14,7 @@
 var ws = require("nodejs-websocket");
 
 var server = ws.createServer();
-server.listen(3001, "localhost", () => {
+server.listen(3001, "192.168.11.2", () => {
   server.on('connection', (connection) => {
     console.log("New client connected");
     connection.on("text", (message) => {
@@ -25,6 +25,9 @@ server.listen(3001, "localhost", () => {
     });
     connection.on("close", (code, reason) =>
       console.log("Client disconnected")
+    );
+    connection.on("error", (code, reason) =>
+      console.log("some error occured")
     );
   });
 });
